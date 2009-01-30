@@ -16,6 +16,11 @@
 
 `grid.globusMyproxy` <-
 function(){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	cat("Enter the MyProxy Pass Phrase, you have written to the config file\n")
 	system(paste("myproxy-init -l ",.grid$myProxyUsername, " -s ",.grid$myProxyHost, sep=""))}
 

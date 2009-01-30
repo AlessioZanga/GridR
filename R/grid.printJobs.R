@@ -16,7 +16,11 @@
 
 `grid.printJobs` <-
 function(){
-.grid$gridJobs
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
   if(length(.grid$gridJobs) > 0){
     cat("\nRunning jobs:\n")
     for(i in 1:length(.grid$gridJobs)){

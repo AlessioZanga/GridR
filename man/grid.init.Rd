@@ -6,7 +6,7 @@
 If you use a config file, it is not necessary to add one of the parameters explained below.
 }
 \usage{
-grid.init(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUsername=NULL, sshRemoteDir=NULL, myProxyHost=NULL, myProxyUsername=NULL, credentialName=NULL, myProxyPwd=NULL, myProxyPort=NULL, service=NULL, acgtUrl=NULL, acgtHost=NULL, acgtLibPath=NULL, acgtDn=NULL, sshKey=NULL, debug=FALSE, sharedDir=NULL, remoteRPath=NULL)
+grid.init(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUsername=NULL, sshRemoteDir=NULL, myProxyHost=NULL, myProxyUsername=NULL, credentialName=NULL, myProxyPwd=NULL, myProxyPort=NULL, service=NULL, sshKey=NULL, debug=FALSE, sharedDir=NULL, remoteRPath=NULL, schedulerIp=NULL, schedulerPort=NULL)
 }
 \arguments{
 \item{confFile}{Path to the config file}
@@ -22,13 +22,11 @@ grid.init(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUs
   \item{myProxyPwd}{the password of the myproxy certificate is specified here}
   \item{myProxyPort}{the port of the myproxy certificate is specified here, if not the default port is used}
   \item{service}{ Here you can add the default service mode, see ?grid.apply }
-  \item{acgtUrl}{ If you use acgt.ws mode, the URL of the webservice which submitts the job into the ACGT Net is specified here }
-  \item{acgtHost}{If you use acgt.ws mode, the hostname of the execution host is specified here}
-  \item{acgtLibPath}{The acgt.ws mode needs additional libraries. This path should point to the Globus Toolkit libraries.(tested with gt4.1.2)}
-  \item{acgtDn}{Please add the Dn of your certificate here}
   \item{debug}{If TRUE, all files will not be deleted locally and on serverside}
   \item{sharedDir}{Path of the directory where shared vaiables will be loaded}
-  \item{remoteRPath}{Path to R on the condor pool}
+  \item{remoteRPath}{Path to R, if needed}
+  \item{schedulerIp}{If a scheduler should be used, add his IP here}
+  \item{schedulerPort}{Port of the scheduler, if used}
 }
 \details{The easiest way to use GridR is to use a config file.\cr
 The name of the config file is "gridr.conf" and it should be placed inside the user home directory or the directory from where R is executed. if another path is used, please specify it with the value \"configFile\"\cr
@@ -42,7 +40,7 @@ Change the Comment to your local username \@ yourLocalComputer
 Click on Conversions/Export OpenSSH Key and save it to the path added to your config file.
 Now add the Text in the "Public Key for pasting into OpenSSH authorized\_keys file" to a new line to \~/.ssh/authorized\_keys on the server where to execute GridR
 
-On each Server, R must be added to the PATH environment variable.
+On each Server, R must be added to the PATH environment variable, R\_HOME must be set or remoteRPath must be declared.
 If condor modes are used, a link to R must be added to /usr/bin/ or add a line to the config file:
 <REMOTERPATH>/path/to/R</REMOTERPATH>\cr
 If the condor batch modes are used, the package GridR must be installed on each Cluster-Host.
@@ -97,19 +95,18 @@ You must enter at least the following lines to the config file or command line:\
 <REMOTERPATH>pathToRemoteR</REMOTERPATH>\# if R is not linked to /usr/bin/R on serverside, please add this Tag here
 </GRIDR>								\# end tag\cr
 
-\code{acgt.ws}
-
-<GRIDR>										\#start tag, necessary\cr
-<LOCALTMPDIR>/home/user</LOCALTMPDIR>		\#local dir where to put tmp files\cr
-<ACGTWSURL>https://192.168.0.8:8444/wsrf/services/GridRService</ACGTWSURL>\# url of the ACGT GridRService\cr
-<ACGTLIBPATH>/path/to/gt-lib/> 				\#Path to the Globus libraries\cr
-<ACGTDN>/C=EU/O=ACGT/OU=Fraunhofer/CN=hostname.ais.fraunhofer.de</ACGTDN> \#DN of the certificate\cr
-<ACGTEXECUTIONHOST>192.168.0.8</ACGTEXECUTIONHOST> \# IP of the host where to execute the job\cr
-<SERVICE>acgt.ws</SERVICE> 					\#which service to use by default	\cr
-<MYPROXYUSERNAME>name</MYPROXYUSERNAME> 	\# name of the myproxy credential \cr
-<MYPROXYPWD>pwd</MYPROXYPWD>				\# myproxy password\cr
-<MYPROXYHOST>host</MYPROXYHOST> 			\# ip of the host where a myproxy credential exists\cr
-</GRIDR>									\# end tag\cr
+\code{scheduler}
+if the variable schedulerIp is set, all jobs are started with the use of a scheduler. 
+At grid.init() it is checked if there are jobs which are started earlier from another R Session. 
+If so they are imported to your active R Session.
+You can start the scheduler by copying all files from R.home("library/GridR/GridR/scheduler") 
+to the server where the scheduler should run, set up a passwordless ssh-logon from your client, 
+to this scheduler-server and from the scheduler-server to all execution machines. 
+Download trilead-ssh2-build212.jar or similar at \url{http://www.trilead.com/Download/Trilead_SSH_for_Java/} 
+and save it to the lib Directory.
+Now you can start the scheduler with ./start.sh <port>.
+The scheduler can be restarted with \code{\link{grid.restartScheduler}} and stopped with \code{\link{grid.stopScheduler}}.
+In scheduler Mode, all submitted jobs can be stopped by \code{\link{grid.stopJob}} or restarted by \code{\link{grid.restartJob}}   
 }
 \author{ Malte Lohmeyer }
 
@@ -124,7 +121,7 @@ a<-function(s){return(2*s)}
 #define a function that will be executed remotely
 library("GridR")
 #load the gridR-Code
-grid.init(service="local", localTmpDir="/tmp/")
+grid.init(service="local", localTmpDir="GridRTmp/")
 #initializes gridR with the parameters entered in the config file
 grid.apply("x",a, 3, wait=TRUE)
 #applies function `a` with parameter 3 and writes the result to variable x. until the function is executed, x has a lock.

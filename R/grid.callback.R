@@ -16,8 +16,116 @@
 
 `grid.callback` <-
 function(...){
-  
-  # see if something is to do (grid))
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
+  # see if something is to do (grid)
+  if(.grid$schedulerMode){
+	#ckeck for ready jobs on scheduler
+	conn = socketConnection(host=.grid$schedulerIp, port=.grid$schedulerPort, blocking=TRUE)
+	command=paste("<job>\n<mode>checkAllResults</mode>\n<username>",.grid$ssh$username,"</username>\n</job>\n",sep="")
+	writeLines(command, conn)
+	outFiles = readLines(conn)
+	idsToDelete=vector()
+	if(!length(outFiles)==0)
+	{
+		for(i in 1:length(outFiles)){
+	#		cat(outFiles[i],"\n")
+			if(substr(outFiles[i], 1,22)=="ERROR: Job had Error: " || substr(outFiles[i], 1,15)=="Job had Error: "){
+				cat(outFiles[i], "\n")
+				# find jobID at the end of the string
+				begin=nchar(outFiles[i])
+				while(begin > 0 && substr(outFiles[i],begin,begin)!=" ")
+					begin=begin-1
+				jobIDs = substring(outFiles[i], begin+1, nchar(outFiles))
+				jobID = as.integer(jobIDs)
+		
+				if(!is.na(jobID))
+				{
+					idsToDelete[length(idsToDelete)+1] =jobID
+	
+					# find local job number
+					if(length(.grid$gridJobs)>0)
+					{
+						localJob=-1
+						for( k in 1:length(.grid$gridJobs))
+							if(.grid$gridJobs[[k]]$id==jobID)
+								localJob = k
+						if(localJob!=-1)
+						{
+							varName = .grid$gridJobs[[localJob]]$var
+							#unlock 
+							if(varName %in% .grid$lock$varName){
+								i <- which(.grid$lock$varName == varName,arr.ind=TRUE)[1]
+								# remove lock
+								rm(list=varName,pos=1)
+								if(.grid$lock$exists[i]){
+									assign(varName,.grid$lock$value[[i]],.GlobalEnv)
+								}
+								ii <- setdiff(1:length(.grid$lock$varName),i)
+								.grid$lock$varName <- .grid$lock$varName[ii]
+								.grid$lock$writeLock <- .grid$lock$writeLock[ii]
+								.grid$lock$value <- .grid$lock$value[ii]
+								.grid$lock$exists <- .grid$lock$exists[ii]
+							}
+							#delete job
+			
+							if(!.grid$debug)
+								unlink(paste(.grid$localDir,.grid$gridJobs[[localJob]]$name,"-*",sep=""))
+							.grid$gridJobs <- .grid$gridJobs[setdiff(1:length(.grid$gridJobs),localJob)]
+								next
+						}
+						else
+							cat("error, no local job found for jobID", jobID, "\n")
+					}
+				}
+				else
+					cat("error, cannot parse JobId of the error String, thus files of the job cannot be deleted\n")
+			}
+			else if(substr(outFiles[i], 1,5)=="ERROR" || substr(outFiles[i], 1,5)=="Error")
+			{
+				cat(outFiles[i], "\n")
+				next
+			}
+			else
+			{
+				nameAndSizeAndId = grid.copyFile(outFiles[i])
+				if(length(.grid$gridJobs)!=0)
+					for(j in 1:length(.grid$gridJobs))
+					{
+						if(!is.na(pmatch(.grid$gridJobs[[j]]$name,nameAndSizeAndId[1] )))
+						{	#found right job
+							.grid$gridJobs[[j]]$id=nameAndSizeAndId[3]
+							.grid$gridJobs[[j]]$sizes[[length(.grid$gridJobs[[j]]$sizes)+1]]=nameAndSizeAndId
+							#print(.grid$gridJobs[[j]]$sizes)
+							#mark id to delete job later
+							idsToDelete[length(idsToDelete)+1] = nameAndSizeAndId[3]
+						}
+					}
+			}
+		}
+	}
+	close(conn)
+	if(length(idsToDelete)>0)
+	{
+		ids =unique(idsToDelete)
+		for(i in 1:length(ids))
+		{
+			conn = socketConnection(host=.grid$schedulerIp, port=.grid$schedulerPort, blocking=TRUE)
+			mode="";
+			if(.grid$debug)
+				mode = "deleteJob"
+			else
+				mode = "deleteFiles"
+			command=paste("<job>\n<mode>",mode,"</mode>\n<username>",.grid$ssh$username,"</username>\n<id>",ids[i],"</id>\n</job>\n",sep="")
+			writeLines(command, conn)
+			close(conn)
+		}
+	}
+  }
+
   reapply=FALSE			#if it is set to TRUE the job will be reapplied
   del=TRUE
   .grid$changed=NULL #changes if a job is finished this run
@@ -33,7 +141,29 @@ function(...){
 	   if(file.info(filename)$size==0){
  	     Sys.sleep(1)
 	 }
-   
+   if(.grid$schedulerMode){
+    #get filesize 
+		size=-1
+		jobId=-1
+		if(length(jobs[[i]]$sizes)!=0){
+			for(k in 1:length(jobs[[i]]$sizes)){
+				if(length(jobs[[i]]$sizes[[k]])==3 && !is.na(pmatch(remOutput, jobs[[i]]$sizes[[k]][1])))
+					{
+						size=jobs[[i]]$sizes[[k]][2]
+						jobId=jobs[[i]]$sizes[[k]][3]
+					}
+					
+			}
+		}
+		if(size!=-1)
+		{
+			if(file.info(filename)$size!=size){
+				if(.grid$debug)
+ 	    			cat("waiting for file: ", remOutput, "\n")
+				next;
+			}
+	   }
+	}
 	  #unlock jobs[[i]]$var
 	varName=jobs[[i]]$var
 	if(varName %in% .grid$lock$varName){

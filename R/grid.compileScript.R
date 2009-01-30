@@ -15,6 +15,11 @@
 #	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 `grid.compileScript` <-function(path){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	
 	savehistory(path)
 	#delete last line
@@ -36,7 +41,7 @@
 	tmpPath = paste(path, ".tmp", sep="")
 	write.table(copyTmp,file=tmpPath,quote=FALSE,row.names=FALSE,col.names=FALSE)
 	
-	a=system(paste("R CMD BATCH ", tmpPath,sep=""), intern=TRUE)
+	a=system(paste(R.home(component="bin"),"/R CMD BATCH ", tmpPath,sep=""), intern=TRUE)
 	errorInLine = scan(file=paste(path, ".out",sep=""), what=character(0), sep="\n", quiet=TRUE )
 #	if(errorInLine[1]=="-1")
 #	{

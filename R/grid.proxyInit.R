@@ -16,5 +16,10 @@
 
 `grid.proxyInit` <-
 function(){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	system("grid-proxy-init")}
 

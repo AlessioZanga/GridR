@@ -15,6 +15,11 @@
 #	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 `grid.waitForResult` <- function(vars){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	for(i in 1:length(vars)) { 
 		while(grid.isLocked(vars[i])){
 			Sys.sleep(1)

@@ -14,25 +14,38 @@
 #	along with this program; if not, write to the Free Software
 #	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-`grid.AcgtDownload` <-function(fileID,localName){
-	if(!.grid$acgt){
-		cat("This function is only availible for members of the ACGT Project with the right libraries in ACGTLIBPATH and with a valid ACGT Myproxy Certificate\n")
-		return(FALSE)
-	}
-	
-	if(is.null(.grid$myProxyUsername))
+
+`grid.startScheduler` <-function(verbose=TRUE, intern=FALSE){
+	if(is.null(.grid$schedulerMode))
 	{
-		cat("myProxyUsername is not specified in config file or grid.init\n")
+		cat("please run grid.init(...) first\n")
 		return(FALSE)
 	}
-	if(is.null(.grid$pwd))
+	if(!.grid$schedulerMode)
 	{
-		cat("myProxyPwd is not specified in config file or grid.init\n")
+		cat("not in scheduler mode, aborting...\n")
 		return(FALSE)
 	}
-	ret=try(system(paste("java de.fhg.iais.kd.gridr.clients.GridRServiceACGTClient downloadFromDMS ", fileID, " ", localName, " ", .grid$myProxyUsername, " ", .grid$pwd," ", .grid$myProxyHost, " ",.grid$credentialName, " ", .grid$myproxyPort, sep="") ,intern=TRUE))
-	if(inherits(ret, "try-error")){
-		cat("Error, cannot execute GridRServiceACGTClient\n")
+	if(is.null(.grid$schedulerIp) || is.null(.grid$schedulerPort))
+	{
+		cat("Error: please run grid.init() first\n")
+		return(FALSE)
 	}
-	cat(ret)
+	if(.grid$schedulerIp=="localhost" || .grid$schedulerIp=="LOCALHOST" || .grid$schedulerIp=="127.0.0.1"){
+		system(paste("java de.fhg.iais.kd.djm.ServerStartup",.grid$schedulerPort), wait=FALSE)
+		if(!intern){
+			.grid$schedulerStarted=TRUE
+			assign(".grid",.grid,.GlobalEnv)
+		}
+		else
+			return(TRUE)
+	}
+	else
+	{
+		if(verbose)
+			cat("The scheduler IP is not localhost, please start it manually on the remote server\n")
+		if(intern)
+			return(FALSE)
+	}
+		
 }

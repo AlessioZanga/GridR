@@ -16,8 +16,8 @@ All needed functions and variables that are necessary to execute that function w
 \tabular{ll}{
 Package: \tab GridR\cr
 Type: \tab Package\cr
-Version: \tab 0.8.4\cr
-Date: \tab 2008-12-04\cr
+Version: \tab 0.9.1\cr
+Date: \tab 2009-01-30\cr
 License: \tab GPL-2\cr
 }
 With grid.init(...) GridR is initialized.
@@ -28,7 +28,7 @@ The name of the config file is ".gridr.conf" or "gridr.conf" and it should be pl
 Using grid.apply you can submit a function to be executed in the grid.(see \link{grid.apply})\cr
 After execution the result will be copied back.
 
-With grid.share you can share functions and variables with other users on your computer. With grid.share you can share functions and variables with other users on your computer. If you have installed an nfs you can share them with remote users.(see \link{grid.share} )
+With grid.share you can share functions and variables with other users on your computer. If you have installed an nfs you can share them with remote users.(see \link{grid.share} )
  
 
 }
@@ -63,7 +63,7 @@ a<-function(s){return(2*s)}
 #define a function that will be executed remotely
 library("GridR")
 #load the gridR-Code
-grid.init(service="local",debug=FALSE, localTmpDir="/tmp/")
+grid.init(service="local",debug=FALSE, localTmpDir="GridRTmp/")
 #initializes gridR
 grid.apply("x",a, 3, wait=TRUE)
 #applies function `a` with parameter 3 and writes the result to variable x. until the function is executed, x has a lock.

@@ -14,6 +14,11 @@
 #	along with this program; if not, write to the Free Software
 
 `grid.enableSharing` <-function(){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	if(.grid$nfs$run==FALSE){
 			.grid$nfs$run=TRUE
 			.grid$shareCallback <- addTaskCallback(grid.shareCallback)

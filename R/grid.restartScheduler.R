@@ -14,33 +14,19 @@
 #	along with this program; if not, write to the Free Software
 #	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-`grid.AcgtUpload` <-function(file){
-	if(!.grid$acgt){
-		cat("This function is only availible for members of the ACGT Project with the right libraries in ACGTLIBPATH and with a valid ACGT Myproxy Certificate\n")
-		return(FALSE)
-	}
-	
-	if(is.null(.grid$myProxyUsername))
+
+`grid.restartScheduler` <-function(){
+	if(is.null(.grid$schedulerMode))
 	{
-		cat("myProxyUsername is not specified in config file or grid.init\n")
+		cat("please run grid.init(...) first\n")
 		return(FALSE)
 	}
-	if(is.null(.grid$pwd))
+	if(!.grid$schedulerMode)
 	{
-		cat("myProxyPwd is not specified in config file or grid.init\n")
+		cat("not in scheduler mode, aborting...\n")
 		return(FALSE)
 	}
-	
-	ret=try(system(paste("java de.fhg.iais.kd.gridr.clients.GridRServiceACGTClient uploadToDMS ", file, " ", .grid$myProxyUsername, " ", .grid$pwd, " ", .grid$myProxyHost, " ", .grid$credentialName, " ", .grid$myproxyPort, sep=""), intern=TRUE))
-	if(inherits(ret, "try-error")){
-		cat("Error, cannot execute GridRServiceACGTClient\n")
-	}
-	warn=getOption("warn")
-	options(warn=-1)
-	retNum=as.numeric(ret)
-	options(warn=warn)
-	if(any(is.na(retNum)))
-		warning(ret)
-	else
-		return(retNum)
+	conn = socketConnection(host=.grid$schedulerIp, port=.grid$schedulerPort, blocking=TRUE)
+	command=paste("<job>\n<mode>restart</mode>\n<username>",.grid$ssh$username,"</username>\n</job>",sep="")
+	writeLines(command, conn)
 }

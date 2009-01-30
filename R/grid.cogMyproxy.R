@@ -16,6 +16,11 @@
 
 `grid.cogMyproxy` <-
 function(){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	cat("Enter the MyProxy Pass Phrase, you have written to the config file\n")
 	system(paste("cog-myproxy -l ",.grid$myProxyUsername, " -h ",.grid$myProxyHost," put", sep=""))}
 

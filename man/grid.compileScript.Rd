@@ -20,9 +20,4 @@ grid.compileScript(path)
 #1
 #grid.compileScript("test.R")
 }
-\seealso{
-\code{\link{grid.AcgtUpload}}
-\code{\link{grid.AcgtListRepo}}
-\code{\link{grid.AcgtEnactRepo}}
-}
 \keyword{ programming }

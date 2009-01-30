@@ -16,6 +16,11 @@
 
 `grid.consistency` <-
 function() { # check if there are errors in .grid structure 
+if(is.null(.grid$schedulerMode))
+{
+	cat("please run grid.init(...) first\n")
+	return(FALSE)
+}
 wd=getwd()	
 setwd(.grid$localDir)
 jobVars=c()

@@ -14,6 +14,11 @@
 #	along with this program; if not, write to the Free Software
 
 `grid.disableSharing` <-function(){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	if(.grid$nfs$run==TRUE){
 			.grid$nfs$run=FALSE;
 			removeTaskCallback(.grid$shareCallback)

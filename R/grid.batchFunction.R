@@ -16,7 +16,6 @@
 
 `grid.batchFunction` <-
 function(grid.input.Parameters, fName, yName, varlist, scriptName, remScriptName, errName, condorName, batch, check, noCondor, remoteRPath){
-
 	cmd=grid.getBatchCmd(grid.input.Parameters, batch)
 	count=1
 	while(count<=length(cmd))
@@ -49,7 +48,7 @@ function(grid.input.Parameters, fName, yName, varlist, scriptName, remScriptName
 		
 		err=FALSE	
 		if(noCondor){
-			system(paste("R CMD BATCH --vanilla ", remScriptName, "-",count, sep=""))
+			system(paste(R.home(component="bin"),"/R CMD BATCH --vanilla ", remScriptName, "-",count, sep=""))
 		}
 		else{
 			#make condorscript

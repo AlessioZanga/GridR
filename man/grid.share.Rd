@@ -21,7 +21,7 @@ Be Careful: it overrides the old value automatically!
 \keyword{ programming }
 \examples{
 library("GridR")
-grid.init(service="variableSharing", sharedDir="/tmp/share")
+grid.init(service="variableSharing", sharedDir="GridRTmp/share")
 x=2
 grid.share("x")
 }

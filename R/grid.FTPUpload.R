@@ -16,5 +16,10 @@
 
 `grid.FTPUpload` <-
 		function(url=NULL,path=NULL){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	system(paste("java FTPUpload ", url , " ", path,sep=""))
 }

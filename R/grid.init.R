@@ -15,8 +15,29 @@
 #	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 `grid.init` <-
-function(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUsername=NULL, sshRemoteDir=NULL, myProxyHost=NULL, myProxyUsername=NULL, credentialName=NULL, myProxyPwd=NULL, myProxyPort=NULL, service=NULL, acgtUrl=NULL, acgtHost=NULL, acgtLibPath=NULL, acgtDn=NULL, sshKey=NULL, debug=FALSE, sharedDir=NULL, remoteRPath=NULL){
-#load config file  
+		function(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUsername=NULL, sshRemoteDir=NULL, myProxyHost=NULL, myProxyUsername=NULL, credentialName=NULL, myProxyPwd=NULL, myProxyPort=NULL, service=NULL, sshKey=NULL, debug=FALSE, sharedDir=NULL, remoteRPath=NULL, schedulerIp=NULL, schedulerPort=NULL){
+	#delete old values
+	.grid$localDir=NULL
+	.grid$ssh$ip=NULL
+	.grid$ssh$username=NULL
+	.grid$myProxyUsername=NULL
+	.grid$pwd=NULL
+	.grid$myproxyPort=NULL
+	.grid$credentialName=NULL
+	.grid$ssh$remotePath=NULL
+	.grid$javaClientPath=NULL
+	.grid$globusHost=NULL
+	.grid$myProxyHost=NULL
+	.grid$service=NULL
+	.grid$cogDir=NULL
+	.grid$ssh$key=NULL
+	.grid$remoteRPath=NULL
+	.grid$nfs$dir=NULL
+	.grid$nfs$dir=NULL
+	.grid$schedulerIp=NULL
+	.grid$schedulerPort=NULL
+
+    #load config file  
 	if(!exists(".grid", inherits=TRUE)){
 		cat("Error,no .grid var!")
 		return(FALSE)
@@ -24,7 +45,7 @@ function(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUse
 	
 	env=loadNamespace("GridR")
 	unlockBinding(".grid", env)
-
+	
 	if(debug)
 		.grid$debug=TRUE
 	else
@@ -39,11 +60,11 @@ function(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUse
 		cat("Error: cannot find the path where GridR is installed, thus all functions which need java code will not work\n")
 	
 	
-
+	
 	configPath=""
 	if(!is.null(confFile) && file.access(confFile)==0){	
-			configPath=	confFile
-		}
+		configPath=	confFile
+	}
 	else
 	{
 		if(file.access("~/gridr.conf")==0) 
@@ -122,13 +143,9 @@ function(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUse
 			if(.grid$debug)
 				cat(paste("found Config File entry : ",tag, " with value ", value, "\n", sep=""))
 			
-		#	save readed values from config file to the right variable
+			#	save readed values from config file to the right variable
 			if(tag=="LOCALTMPDIR")
 				.grid$localDir=gsub("\\\\","/",value)
-#			else if(tag=="GLOBUSWSURL")
-#				.grid$globusUrl=value 
-#			else if(tag=="CONDORWSURL")
-#				.grid$condorUrl=value
 			else if(tag=="SSHREMOTEIP")
 				.grid$ssh$ip=value
 			else if(tag=="SSHUSERNAME")
@@ -153,175 +170,156 @@ function(confFile=NULL, localTmpDir=NULL, verbose=TRUE, sshRemoteIp=NULL, sshUse
 				.grid$service=value
 			else if(tag=="COGREMOTEDIR")
 				.grid$cogDir=value
-			else if(tag=="ACGTWSURL")
-				.grid$acgtUrl=value
-			else if(tag=="ACGTEXECUTIONHOST")
-				.grid$acgtHost=value
 			else if(tag=="SSHKEY")
 				.grid$ssh$key=value
-			else if(tag=="ACGTLIBPATH")
-				.grid$acgtLibPath=value
-			else if(tag=="ACGTDN")
-				.grid$acgtDn=value
 			else if(tag=="REMOTERPATH")
 				.grid$remoteRPath=value
 			else if(tag=="NFSDIR")
 				.grid$nfs$dir=gsub("\\\\","/",value)
 			else if(tag=="SHAREDDIR")
 				.grid$nfs$dir=gsub("\\\\","/",value)
+			else if(tag=="SCHEDULERIP")
+				.grid$schedulerIp=value
+			else if(tag=="SCHEDULERPORT")
+				.grid$schedulerPort=value
+			
 			
 			i=i+1
 		}
 	}
 	#save command line parameters to the right variable
-  if(!is.null(service))
-	  .grid$service<- service
-  if(!is.null(localTmpDir))
-	  .grid$localDir <- localTmpDir
-  if(!is.null(sshRemoteIp))
-	  .grid$ssh$ip=sshRemoteIp
+	if(!is.null(service))
+		.grid$service<- service
+	if(!is.null(localTmpDir))
+		.grid$localDir <- gsub("\\\\","/",localTmpDir)
+	if(!is.null(sshRemoteIp))
+		.grid$ssh$ip=sshRemoteIp
 #  if(!is.null(condorUrl))
 #	  .grid$condorUrl=condorUrl
- # if(!is.null(globusUrl))
+	# if(!is.null(globusUrl))
 #	  .grid$globusUrl=globusUrl
-  if(!is.null(sshRemoteDir))
-	  .grid$ssh$remotePath=sshRemoteDir
+	if(!is.null(sshRemoteDir))
+		.grid$ssh$remotePath=sshRemoteDir
 #  if(!is.null(globusExecutionHost))
 #	  .grid$globusHost=globusExecutionHost
-  if(!is.null(sshUsername))
-	  .grid$ssh$username=sshUsername
-  if(!is.null(myProxyHost))
-	  .grid$myProxyHost=myProxyHost
-  if(!is.null(myProxyUsername))
-	  .grid$myProxyUsername=myProxyUsername
-  if(!is.null(myProxyPwd))
-	  .grid$pwd=myProxyPwd
-  if(!is.null(myProxyPort))
-  	.grid$myproxyPort=myProxyPort
-  if(!is.null(credentialName))
-	  .grid$credentialName=credentialName
-#  if(!is.null(cogRemoteDir))
-#	  .grid$cogDir=cogRemoteDir
-  if(!is.null(acgtLibPath))
-	  .grid$acgtLibPath=acgtLibPath
-  if(!is.null(acgtHost))
-	  .grid$acgtHost=acgtHost
-  if(!is.null(acgtUrl))
-	  .grid$acgtUrl=acgtDn
-  if(!is.null(acgtUrl))
-	  .grid$acgtDn=acgtDn
-  if(!is.null(sshKey))
-  	  .grid$ssh$key=sshKey
-  if(!is.null(remoteRPath))
-	  .grid$remoteRPath=remoteRPath
-  if(!is.null(sharedDir))
-	  .grid$nfs$dir=sharedDir
- 
-  
-	#check if all needed parameters are entered
-	if(is.null(.grid$service)){
-		cat("service is not specified. Check Config File and Parameters\n wrong service, availible services are: local, condor.ssh, remote.ssh, globus.cog (and acgt.ws) and variableSharing\n")
-		return(FALSE)
-	}
-	if(!(.grid$service=="condor.ssh" ||.grid$service=="local" || .grid$service =="remote.ssh" || .grid$service=="acgt" || .grid$service=="globus.cog" ||.grid$service=="variableSharing"))
-	{
-		cat("wrong service, availible services are: local, condor.ssh, remote.ssh, globus.cog (and acgt) and variableSharing\n")
-		return(FALSE)
-	}
-	err=FALSE
-  if(is.null(.grid$localDir) && .grid$service!="variableSharing" && .grid$service!="acgt"){
-	  cat("localTmpDir is not specified. Check config file and parameters.\n")
-	  err=TRUE
-	  }
-  if(is.null(.grid$nfs$dir) ){
-	  if(.grid$debug)
-	  	cat("GridR variableSharing will be disabled, because sharedDir is not specified. \n")
-	  .grid$nfs$run=FALSE
-  }
-  else
-	  .grid$nfs$run=TRUE
-
-  if (is.null(.grid$ssh$ip) && (.grid$service=="condor.ssh" ||.grid$service=="remote.ssh" )) {
-	  cat("sshRemoteIp is not specified. Check Config File and Parameters\n")
-	  err=TRUE
-	  }
-
-#  if(is.null(.grid$condorUrl) && .grid$service=="condor.ws" ) {
-#	  cat("condorUrl is not specified. Check Config File and Parameters\n")
-#	  err=TRUE
-#	  }
-	  
-#  if(is.null(.grid$globusUrl) && ( .grid$service=="acgt.ws") ) {
-#	  cat("globusUrl is not specified. Check Config File and Parameters\n")
-#	  err=TRUE
-#  }
+	if(!is.null(sshUsername))
+		.grid$ssh$username=sshUsername
+	if(!is.null(myProxyHost))
+		.grid$myProxyHost=myProxyHost
+	if(!is.null(myProxyUsername))
+		.grid$myProxyUsername=myProxyUsername
+	if(!is.null(myProxyPwd))
+		.grid$pwd=myProxyPwd
+	if(!is.null(myProxyPort))
+		.grid$myproxyPort=myProxyPort
+	if(!is.null(credentialName))
+		.grid$credentialName=credentialName
+	if(!is.null(sshKey))
+		.grid$ssh$key=sshKey
+	if(!is.null(remoteRPath))
+		.grid$remoteRPath=remoteRPath
+	if(!is.null(sharedDir))
+		.grid$nfs$dir=sharedDir
+	if(!is.null(schedulerIp))
+		.grid$schedulerIp=schedulerIp 
+	if(!is.null(schedulerPort))
+		.grid$schedulerPort=schedulerPort
 	
- # if(is.null(.grid$acgtUrl) && .grid$service=="acgt.ws") {
-#	  cat("acgtUrl is not specified. Check Config File and Parameters\n")
-#	  err=TRUE
- # }
-  if(is.null(.grid$acgtLibPath) && .grid$service=="acgt") {
-	  cat("acgtLibPath is not specified. Check Config File and Parameters\n")
-	  err=TRUE
-  }  
-  if(is.null(.grid$acgtDn) && .grid$service=="acgt") {
-	  cat("acgtLibPath is not specified. Check Config File and Parameters\n")
-	  err=TRUE
-  }
-  if (is.null(.grid$ssh$remotePath) && (.grid$service=="condor.ssh" ||.grid$service=="remote.ssh" )) {
-	  cat("sshRemoteDir is not specified. Check Config File and Parameters\n")
-	  err=TRUE
-	  }
-	if(is.null(.grid$myProxyUsername) && ( .grid$service=="acgt") ) {
-		cat("myProxyUsername is not specified. Check Config File and Parameters\n")
-		err=TRUE
-		}
-	if(is.null(.grid$myProxyHost) && .grid$service=="acgt" ) {
-		cat("myProxyHost is not specified. Check Config File and Parameters\n")
-		err=TRUE
+	# if scheduler Ip is set, start GridR in SchedulerMode
+	if(!is.null(.grid$schedulerIp)){
+		if(!capabilities(what="sockets")){
+			warning("Your R version doesn't support sockets, please install a newer one. Up to that, non-scheduler mode will be used")
+		}else if(.grid$debug)
+			cat("starting GridR in scheduler mode. Using scheduler ", .grid$schedulerIp, "\n")
+		.grid$schedulerMode=TRUE
 	}
-	if(is.null(.grid$globusHost) && ( .grid$service=="globus.cog" ) ) {
-		cat("globusExecutionHost is not specified. Check Config File and Parameters\n")
-		err=TRUE
+	else{
+		if(.grid$debug)
+			cat("starting GridR without Scheduler\n")
+		.grid$schedulerMode=FALSE
 	}
-	if(is.null(.grid$ssh$username) && (.grid$service=="condor.ssh" ||.grid$service=="remote.ssh" )){
-		cat("sshUsername is not specified. Check Config File and Parameters\n")
-		err=TRUE
-	}
-	if(is.null(.grid$pwd) && ( .grid$service=="acgt") ) {
-	  cat("myProxyPwd is not specified. Check Config File and Parameters\n")
-	  err=TRUE
-	}
-	if(is.null(.grid$cogDir) && .grid$service=="globus.cog") {
-		cat("cogRemoteDir is not specified. Check Config File and Parameters\n")
-		err=TRUE
-	}
-	if (is.null(.grid$ssh$key) && Sys.info()["sysname"]=="Windows" && (.grid$service=="condor.ssh" ||.grid$service=="remote.ssh" )) {
-		cat("sshKey is not specified. Check Config File and Parameters\n")
-		err=TRUE
-	}
-	if(.grid$service=="condor.ssh" && is.null(.grid$remoteRPath))
-		.grid$remoteRPath="/usr/bin/R"
+	# if no scheduler Port is entered use default parameter:
+	if(.grid$schedulerMode && is.null(.grid$schedulerPort))
+		#TODO start at free port and save it here
+		.grid$schedulerPort=4444
 
-  if(err)
-	  return(FALSE)
-  
-  #add / to the end of dirs if not exists
-  if(!is.null(.grid$localDir) && substring(.grid$localDir,nchar(.grid$localDir)) != "/"){ .grid$localDir <- paste(.grid$localDir,"/",sep="") }
-  if(!is.null(.grid$nfs$dir) && substring(.grid$nfs$dir,nchar(.grid$nfs$dir)) != "/"){ .grid$nfs$dir <- paste(.grid$nfs$dir,"/",sep="") }
-  if(!is.null(.grid$cogDir) && substring(.grid$cogDir,nchar(.grid$cogDir)) != "/"){ .grid$cogDir <- paste(.grid$cogDir,"/",sep="") }
-  if(!is.null(.grid$acgtLibPath) && substring(.grid$acgtLibPath,nchar(.grid$acgtLibPath)) != "/"){ .grid$acgtLibPath <- paste(.grid$acgtLibPath,"/",sep="") }
-  if(.grid$service=="condor.ssh" || .grid$service=="remote.ssh") {
-      if(substring(.grid$ssh$remotePath,nchar(.grid$ssh$remotePath)) != "/"){ .grid$ssh$remotePath <- paste(.grid$ssh$remotePath,"/",sep="") }
-  }
-  
-  #check if these dirs exists
-	if(!is.null(.grid$localDir) && is.na(file.info(substr(.grid$localDir,1, nchar(.grid$localDir)-1))$"isdir"))
-		dir.create(.grid$localDir)
-	
-	nfsDirExists=file.info(substr(.grid$nfs$dir,1, nchar(.grid$nfs$dir)-1))$"isdir"
-	if(.grid$nfs$run && is.na(nfsDirExists))
-		dir.create(.grid$nfs$dir)
+
+#check if all needed parameters are entered
+if(is.null(.grid$service)){
+	cat("service is not specified. Check Config File and Parameters\n wrong service, availible services are: local, condor.ssh, remote.ssh, globus.cog and variableSharing\n")
+	return(FALSE)
+}
+if(!(.grid$service=="condor.ssh" ||.grid$service=="local" || .grid$service =="remote.ssh" || .grid$service=="globus.cog" || .grid$service=="globus.ssh" ||.grid$service=="variableSharing"))
+{
+	cat("wrong service, availible services are: local, condor.ssh, remote.ssh, globus.cog, globus.ssh(only scheduler Mode!) and variableSharing\n")
+	return(FALSE)
+}
+err=FALSE
+if(is.null(.grid$localDir) && .grid$service!="variableSharing"){
+	cat("localTmpDir is not specified. Check config file and parameters.\n")
+	err=TRUE
+}
+if(is.null(.grid$nfs$dir) ){
+	if(.grid$debug)
+		cat("GridR variableSharing will be disabled, because sharedDir is not specified. \n")
+	.grid$nfs$run=FALSE
+}
+else
+	.grid$nfs$run=TRUE
+
+if (is.null(.grid$ssh$ip) && (.grid$service=="condor.ssh" ||.grid$service=="remote.ssh" || .grid$service=="globus.ssh" )) {
+	cat("sshRemoteIp is not specified. Check Config File and Parameters\n")
+	err=TRUE
+}
+if(.grid$service=="globus.ssh" && !.grid$schedulerMode){
+	cat("globus.ssh Mode is only in Scheduler Mode supported\n")
+	err=TRUE
+}
+if (is.null(.grid$ssh$remotePath) && (.grid$service=="condor.ssh" ||.grid$service=="remote.ssh" || .grid$service=="globus.ssh")) {
+	cat("sshRemoteDir is not specified. Check Config File and Parameters\n")
+	err=TRUE
+}
+if(is.null(.grid$globusHost) && ( .grid$service=="globus.cog" ) ) {
+	cat("globusExecutionHost is not specified. Check Config File and Parameters\n")
+	err=TRUE
+}
+if(is.null(.grid$ssh$username) && (.grid$service=="condor.ssh" ||.grid$service=="remote.ssh" )){
+	cat("sshUsername is not specified. Check Config File and Parameters\n")
+	err=TRUE
+}
+if(is.null(.grid$cogDir) && .grid$service=="globus.cog") {
+	cat("cogRemoteDir is not specified. Check Config File and Parameters\n")
+	err=TRUE
+}
+if (is.null(.grid$ssh$key) && Sys.info()["sysname"]=="Windows" && (.grid$service=="condor.ssh" ||.grid$service=="remote.ssh" || .grid$service=="globus.ssh" )) {
+	cat("sshKey is not specified. Check Config File and Parameters\n")
+	err=TRUE
+}
+if(.grid$service=="condor.ssh" && is.null(.grid$remoteRPath))
+	.grid$remoteRPath="/usr/bin/R"
+
+if(err)
+	return(FALSE)
+
+#add / to the end of dirs if not exists
+if(!is.null(.grid$localDir) && substring(.grid$localDir,nchar(.grid$localDir)) != "/"){ .grid$localDir <- paste(.grid$localDir,"/",sep="") }
+if(!is.null(.grid$nfs$dir) && substring(.grid$nfs$dir,nchar(.grid$nfs$dir)) != "/"){ .grid$nfs$dir <- paste(.grid$nfs$dir,"/",sep="") }
+if(!is.null(.grid$cogDir) && substring(.grid$cogDir,nchar(.grid$cogDir)) != "/"){ .grid$cogDir <- paste(.grid$cogDir,"/",sep="") }
+if(.grid$service=="condor.ssh" || .grid$service=="remote.ssh") {
+	if(substring(.grid$ssh$remotePath,nchar(.grid$ssh$remotePath)) != "/"){ .grid$ssh$remotePath <- paste(.grid$ssh$remotePath,"/",sep="") }
+}
+
+
+#set absolute path of localDir
+if(!is.null(.grid$localDir) && substr(.grid$localDir,1,1)!="/" && substr(.grid$localDir,2,3)!=":/")
+	.grid$localDir = paste(getwd(), "/", .grid$localDir, sep="")
+#check if these dirs exists
+if(!is.null(.grid$localDir) && is.na(file.info(substr(.grid$localDir,1, nchar(.grid$localDir)-1))$"isdir"))
+	dir.create(.grid$localDir)
+
+nfsDirExists=file.info(substr(.grid$nfs$dir,1, nchar(.grid$nfs$dir)-1))$"isdir"
+if(.grid$nfs$run && is.na(nfsDirExists))
+	dir.create(.grid$nfs$dir)
 
 #initialize .grid
 .grid$uniqueName <- paste("grid",Sys.info()["nodename"],Sys.getpid(),gsub(" |:","-",perl=TRUE,as.character(Sys.time())),.grid$count,sep="-")
@@ -341,59 +339,146 @@ if(.grid$nfs$run)
 
 .grid$verbose <- verbose
 
-  #init classpath separator for different operating systems
-  if(Sys.info()["sysname"]=="Linux"){
-  		.grid$classSeparator=":"
-		.grid$system="linux"
+#init classpath separator for different operating systems
+if(Sys.info()["sysname"]=="Linux"){
+	.grid$classSeparator=":"
+	.grid$system="linux"
+}
+else if(Sys.info()["sysname"]=="Darwin"){
+	.grid$classSeparator=":"
+	.grid$system="linux"
+}
+else if(Sys.info()["sysname"]=="Windows"){
+	.grid$classSeparator=";"
+	.grid$system="windows"
+}
+else{
+	cat(paste("wrong Operating System, availible are: \"Windows\", \"Linux\" and \"Darvin\"\n your Operating system is: ",Sys.info()["sysname"] ))
+	return(FALSE)
+}
+
+# add all jars in the GridR inst Path
+files=dir(.grid$javaClientPath, pattern=".jar$", recursive=TRUE)
+if(length(files)>0)
+{
+	for (i in 1:length(files)){
+		Sys.setenv(CLASSPATH=paste(Sys.getenv("CLASSPATH"),.grid$classSeparator,.grid$javaClientPath, files[i],sep=""))
 	}
-	else if(Sys.info()["sysname"]=="Darwin"){
-		.grid$classSeparator=":"
-		.grid$system="linux"
+}
+
+if(.grid$schedulerMode){
+	res = system(paste("java de.fhg.iais.kd.djm.ServerRunning ",.grid$schedulerIp , " ",.grid$schedulerPort, sep=""),intern=TRUE, wait=TRUE)
+	if(length(res)>1 && .grid$debug)
+		cat("Error: ", res[2], "\n")
+	if(res[1]=="no"){
+		cat("cannot connect to Scheduler: ", .grid$schedulerIp ,":", .grid$schedulerPort, "\n")
+		return(FALSE)
 	}
-   else if(Sys.info()["sysname"]=="Windows"){
-	   .grid$classSeparator=";"
-	   .grid$system="windows"
-   }
-   else{
-	   cat(paste("wrong Operating System, availible are: \"Windows\", \"Linux\" and \"Darvin\"\n your Operating system is: ",Sys.info()["sysname"] ))
-	   return(FALSE)
-   }
-   #set CLASSPATH environment
-	if(!is.null(.grid$acgtLibPath)){
-		#scan .grid$acgtLibPath directory and add all libs to classpathpath var
-		files=dir(.grid$acgtLibPath, pattern=".jar$", recursive=TRUE)
-		if(length(files)>0)
-		{	
-			#add all files if not exists
-			if(gregexpr(files[1],Sys.getenv("CLASSPATH"))[[1]][1]==-1){
-				Sys.setenv(CLASSPATH=paste(Sys.getenv("CLASSPATH"),.grid$javaClientPath,"acgtClient/",.grid$classSeparator, .grid$acgtLibPath, files[1],sep=""))
-				for (i in 2:length(files)){
-					#activate ACGT mode
-					if(gregexpr("EnactClientAPI.jar",files[i])[[1]][1]!=-1)
-						.grid$acgt=TRUE
-					Sys.setenv(CLASSPATH=paste(Sys.getenv("CLASSPATH"),.grid$classSeparator,.grid$acgtLibPath, files[i],sep=""))
+	
+	#check if there are running jobs on scheduler
+	
+	#create connection to scheduler
+	conn = socketConnection(host=.grid$schedulerIp, port=.grid$schedulerPort, blocking=TRUE)
+	command=paste("<job>\n<mode>getJobs</mode>\n<username>",.grid$ssh$username,"</username>\n</job>",sep="")
+	writeLines(command, conn)
+	lines = readLines(conn)
+	if(length(lines)>0){
+		for( i in 1:length(lines)){
+			if(nchar(lines[i])==0)
+				next;
+			# line contains  id paste(.grid$uniqueName, y, wait, run, plots, varlist, check, batch, .grid$service, sep="$$$", collapse=",")
+			#separate id from rest
+			begin=1
+			while(begin < nchar(lines[i]) && substr(lines[i], begin, begin)!=" ")
+				begin = begin+1
+			if(begin == nchar(lines[i])){
+				cat("Error, cannot receive Jobs from Scheduler, no jobID separated with \" \" from rest\n")
+				return(FALSE)
+			}
+			
+			jobId= as.numeric(substr(lines[i], 1, begin-1))
+			lines[i] = substr(lines[i], begin+1, nchar(lines[i]))
+			# now split rest with "$$$"
+			entries = strsplit(lines[i], "$$$", fixed=TRUE)[[1]]
+			if(length(entries)!=9){
+				cat("Error, cannot receive Jobs from Scheduler, localVars has size !=9. size is",length(entries),"\n")
+				return(FALSE)
+			}
+			uniqueName=entries[1]
+			varName=entries[2]
+			wait=as.logical(entries[3])
+			run=as.numeric(entries[4])
+			plots=as.logical(entries[5])
+			varlist=c()
+			if(nchar(entries[6])>0)
+				eval(parse(text=paste("varlist=c(\"",gsub(",","\",\"",entries[6]),"\")" ,sep="")))
+			check=as.logical(entries[7])
+			batch=c()
+			if(nchar(entries[8])>0)
+				eval(parse(text=paste("batch=c(\"",gsub(",","\",\"",entries[8]) ,"\")",sep="")))
+			service=entries[9]
+			job <- list(name=uniqueName,var=varName,envir=NULL, sizes=list(), wait=wait, run=run, plots=plots, varlist= varlist, check=check,batch=batch, service=service, codeToolsOld="", id=jobId)
+			
+			#look if job is running locally
+			localJob=-1
+			if(length(.grid$gridJobs)>0)
+			{
+				for( k in 1:length(.grid$gridJobs))
+					if(.grid$gridJobs[[k]]$id==jobId)
+						localJob = k
+			}
+			if(localJob==-1)
+			{
+				if(exists(varName))
+					cat("found a job on scheduler for variable", varName , "jobId",jobId,"overwrite that variable? (y/n)\n")
+				else
+					cat("found a job on scheduler for variable", varName , "jobId",jobId,"save it to this variable? (y/n)\n")
+				input = scan(nlines=1, what=character(0), quiet=T)
+				if(input!="y"){
+					cat("please enter a new variable to overwrite\n")
+					varName = scan(nlines=1, what=character(0), quiet=T)
+					job$var=varName
 				}
-				#add dms_services & grms_services
-				Sys.setenv(CLASSPATH=paste(Sys.getenv("CLASSPATH"),.grid$classSeparator,.grid$javaClientPath,"acgtClient/dms_services.jar",.grid$classSeparator,.grid$javaClientPath,"acgtClient/grms_services.jar" ,sep=""))
+				#save this new job
+				thisJob=length(.grid$gridJobs)+1
+				.grid$gridJobs[[thisJob]]<- job
+				
+				#lock var (cannot call grid.lock, because then .grid will be overwritten and destroyed)
+				if(varName %in% .grid$lock$varName){
+					stop(paste("Object"+varName+"has lock"))
+				}
+				else{
+					# do locking
+					ex <- exists(varName)
+					if(! ex){
+						assign(varName,NULL,.GlobalEnv)
+					}
+					val <- eval(parse(text=varName))
+					functionname <- paste(".gridlock.",varName,sep="")
+					text <- paste(functionname,"<- function(...){
+									grid.callback()
+									if(!(length(list(...))==0 && any(get(\".grid\", loadNamespace(\"GridR\"))$changed==varName)))
+									stop(paste(\"Object\",varName,\"has write lock from grid function\"))
+									else
+									{
+									eval(parse(text=varName))
+									}
+									}")
+					eval(parse(text=text))
+					rm(list=varName,pos=1)
+					makeActiveBinding(varName,eval(parse(text=functionname)),.GlobalEnv)
+					
+					i <- length(.grid$lock$varName)+1
+					.grid$lock$varName[i] <- varName
+					.grid$lock$writeLock[i] <- TRUE
+					.grid$lock$value[[i]] <- val
+					.grid$lock$exists[i] <- ex
+				}
 			}
 		}
-		else
-		{
-			cat("no jars found in ACGTLIBPATH")
-		}
 	}
-	
-	# add all jars in the GridR inst Path
-	files=dir(.grid$javaClientPath, pattern=".jar$", recursive=TRUE)
-	if(length(files)>0)
-	{
-		for (i in 1:length(files)){
-			Sys.setenv(CLASSPATH=paste(Sys.getenv("CLASSPATH"),.grid$classSeparator,.grid$javaClientPath, files[i],sep=""))
-		}
-	}
-  #assign(".grid",.grid,.GlobalEnv)
-	assign(".grid",.grid, env)
-	
-	
+  }
+	#end schedulerMode
+assign(".grid",.grid, env)
 }
 

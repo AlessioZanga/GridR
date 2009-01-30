@@ -32,14 +32,14 @@ grid.apply(grid.input.Parameters.y=NULL,grid.input.Parameters.f=NULL,... ,wait=F
 #example to execute function a on a single remote host via ssh and save the result to x
 library("GridR")
 a<-function(s){Sys.sleep(s); return(s)}
-grid.init(service="local", localTmpDir="/tmp/")
+grid.init(service="local", localTmpDir="GridRTmp/")
 grid.apply("x",a, 3, wait=TRUE, check=TRUE)
 x
 
 #example for batch mode
 library("GridR")
 a<-function(s, p, q){return(s+p+q)}
-grid.init(service="local", localTmpDir="/tmp/")
+grid.init(service="local", localTmpDir="GridRTmp/")
 grid.apply("y",a, c(0,1,2),1, c(100,200,300), wait=TRUE, check=FALSE, batch=c(1,3))
 #Here all combinations of (0,1,2), 1 and (100,200,300) are executed as parameters of function a. A List with all combinations is returned.
 y

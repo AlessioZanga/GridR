@@ -15,6 +15,11 @@
 
 `grid.share` <-
 function(varName){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	if(!is.character(varName)){
 		print("Wrong usage. To share Variable x call grid.share\"x\"\n")
 		return(FALSE)

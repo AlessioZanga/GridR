@@ -40,6 +40,6 @@ function(plots, remScriptName, psName, varlist, cmd, check, outputFile="y.dat", 
 	if(plots){
 		remscript <- append(remscript,"dev.off()")
 	}
-	write.table(remscript,file=paste(.grid$localDir,remScriptName,sep=""),quote=FALSE,row.names=FALSE,col.names=FALSE)
+	write.table(remscript,file=paste(remScriptName,sep=""),quote=FALSE,row.names=FALSE,col.names=FALSE)
 }
 

@@ -16,6 +16,11 @@
 
 `grid.myproxyLogon` <-
 		function(username, pwd, host, credname=NULL){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
 	if(is.null(credname))
 		res = system(paste("myproxy-logon -l ",username, " -s ",host, sep=""), input=paste(pwd, "\n", sep=""))
 	else

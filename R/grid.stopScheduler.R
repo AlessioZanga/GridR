@@ -14,16 +14,21 @@
 #	along with this program; if not, write to the Free Software
 #	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-`grid.AcgtListRepo` <-
-		function(){
-	if(!.grid$acgt){
-		cat("This function is only availible for members of the ACGT Project with the right libraries in ACGTLIBPATH and with a valid ACGT Myproxy Certificate\n")
+
+`grid.stopScheduler` <-function(){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
 		return(FALSE)
 	}
-	
-	ret=try(system(paste("java de.fhg.iais.kd.gridr.interfaces.acgt.AcgtRepoList ", .grid$javaClientPath, "acgtClient/acgtRepoConfig.xml", sep=""), intern=TRUE))
-	if(inherits(ret, "try-error")){
-		cat("Error, cannot list ACGT Repository\n")
+	if(!.grid$schedulerMode)
+	{
+		cat("not in scheduler mode, aborting...\n")
+		return(FALSE)
 	}
-	return(ret)
+	conn = socketConnection(host=.grid$schedulerIp, port=.grid$schedulerPort, blocking=TRUE)
+	command=paste("<job>\n<mode>stop</mode>\n<username>",.grid$ssh$username,"</username>\n</job>",sep="")
+	writeLines(command, conn)
+	.grid$schedulerStarted=FALSE
+	assign(".grid",.grid,.GlobalEnv)
 }

@@ -24,7 +24,7 @@ function(webservice, fName, plots, scriptName, yName, remScriptName, psName, var
 	if((gregexpr("AcgtRWebservice", webservice)[[1]]==1)) {
 		url=.grid$acgtUrl		
 		grid.makeRemRFile(plots, remScriptName, psName, varlist, cmd, check, remLibFilename=remLibFilename )
-		script=paste(script,"ret=try(system(\"java de.fhg.iais.kd.gridr.clients.GridRServiceACGTClient functionExecutionACGT \\\"",.grid$localDir,fName ,"\\\" \\\"",.grid$localDir,remScriptName,"\\\" \\\"",yName,"\\\" \\\"",.grid$acgtUrl, "\\\" ", .grid$myProxyUsername, " ",.grid$pwd, " ",.grid$acgtHost," ",.grid$acgtDn," ", .grid$myProxyHost, " ",.grid$credentialName, "\",intern=TRUE))", sep="")
+		script=paste(script,"ret=try(system(\"java de.fhg.iais.kd.gridr.clients.GridRServiceACGTClient functionExecutionACGT \\\"",.grid$localDir,fName ,"\\\" \\\"",.grid$localDir,remScriptName,"\\\" \\\"",yName,"\\\" \\\"",.grid$acgtUrl, "\\\" ", .grid$myProxyUsername, " ",.grid$pwd, " ",.grid$acgtHost," ",.grid$acgtDn," ", .grid$myProxyHost, " ",.grid$credentialName, " ", .grid$myproxyPort, "\",intern=TRUE))", sep="")
 	}
 	else {
 			print("wrong webservice in makeWSFiles")

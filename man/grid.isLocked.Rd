@@ -10,7 +10,7 @@ grid.isLocked(varName)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{varName}{ this variable will checked }
+  \item{varName}{ this variable will be checked }
 }
 \examples{
 library("GridR")

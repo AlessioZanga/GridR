@@ -14,27 +14,34 @@
 #	along with this program; if not, write to the Free Software
 #	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-`grid.unlock` <-
-function(varName){
+`grid.copyFile` <-function(fileIn){
 	if(is.null(.grid$schedulerMode))
 	{
 		cat("please run grid.init(...) first\n")
 		return(FALSE)
 	}
-  if(varName %in% .grid$lock$varName){
-    i <- which(.grid$lock$varName == varName,arr.ind=TRUE)[1]
-      # remove lock
-      rm(list=varName,pos=1)
-      if(.grid$lock$exists[i]){
-        assign(varName,.grid$lock$value[[i]],.GlobalEnv)
-      }
-      ii <- setdiff(1:length(.grid$lock$varName),i)
-      .grid$lock$varName <- .grid$lock$varName[ii]
-      .grid$lock$writeLock <- .grid$lock$writeLock[ii]
-      .grid$lock$value <- .grid$lock$value[ii]
-      .grid$lock$exists <- .grid$lock$exists[ii]
-	  
-	assign(".grid",.grid, loadNamespace("GridR"))
-  }
+	
+	split = strsplit(fileIn, ":")[[1]]
+	ip=split[1]
+	file=split[2]
+	size=split[3]
+	jobId=split[4]
+	splitted = strsplit(file, "/")
+	#cat("file:", file, "\n") #ie "grid/grid-linux-9nop-6033-2008-10-20-16-11-48-0-y.dat"
+	relFilename =splitted[[1]][length(splitted)+1]#filename without path
+	#cat(paste("scp -B ",.grid$ssh$username,"@", ip,":",file," ", relFilename," 2>&1", sep=""))
+	if(.grid$system=="linux"){												
+		err=system(paste("scp -B ",.grid$ssh$username,"@", ip,":",file," ",.grid$localDir, relFilename," 2>&1", sep=""), wait=FALSE ,intern=TRUE)
+		if(length(err)!=0) {
+			print(paste("Error, cannot copy files from remote host ",ip,"\n", err, sep=""))
+			return()
+		}	
+	}
+	else
+		system(paste("java de.fhg.iais.kd.gridr.interfaces.SshDownload ", ip, " ",.grid$ssh$username, " \"",.grid$ssh$key, "\" \"", .grid$localDir ,"\" \"" , "", "\" ",.grid$debug, " \"",file, "\"",sep=""), wait=FALSE)
+	res=vector()
+	res[1]=relFilename
+	res[2]=size
+	res[3]=jobId
+	return(res)
 }
-

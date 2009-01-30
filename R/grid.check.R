@@ -16,17 +16,22 @@
 
 `grid.check` <-
 function(grid.input.Parameters.f,x="",varlist=c(), fName="", intern=FALSE) {
+if(is.null(.grid$schedulerMode))
+{
+	cat("please run grid.init(...) first\n")
+	return(FALSE)
+}
 wd=getwd()
 setwd(.grid$localDir)
 end=FALSE
-fMissing = paste(.grid$localDir, .grid$uniqueName, "-missing", sep="")
-localScript=paste(.grid$localDir, .grid$uniqueName, "-localScript.R", sep="")
+fMissing = paste(.grid$uniqueName, "-missing", sep="")
+localScript=paste(.grid$uniqueName, "-localScript.R", sep="")
 codeToolsOld=""
 
 if(fName=="")
 {
    fName <- paste(.grid$uniqueName,"-fxc",sep="") #dont overwrite other fName!!!
-   save(list=c("grid.input.Parameters.f",varlist),file=paste(.grid$localDir,fName,sep=""))
+   save(list=c("grid.input.Parameters.f",varlist),file=fName)
 }
 while(!end)
 {
@@ -39,7 +44,7 @@ while(!end)
 
 	write.table(script,file=localScript,quote=FALSE,row.names=FALSE,col.names=FALSE)
 
-	system(paste("R CMD BATCH --vanilla \"",localScript,"\"", sep=""))
+	system(paste(R.home(component="bin"), "/R CMD BATCH --vanilla \"",localScript,"\"", sep=""))
 	grid.input.Parameters=NULL
 	if(file.exists(fMissing))
 		load(fMissing)

@@ -16,6 +16,11 @@
 
 `grid.unlockAll` <-
 function(){
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
     for(i in 1:length(.grid$lock$varName))
 	{
 	  varName=.grid$lock$varName[i]

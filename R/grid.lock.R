@@ -16,6 +16,7 @@
 
 `grid.lock` <-
 function(varName){
+  #if code is changed, change it in grid.init,too
   # test if write-locked
   if(varName %in% .grid$lock$varName){
     cat("Object", varName, "has lock")

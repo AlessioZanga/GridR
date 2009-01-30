@@ -16,7 +16,12 @@
 
 `grid.exit` <-
 function(){
-  # TODO add try-block
+	if(is.null(.grid$schedulerMode))
+	{
+		cat("please run grid.init(...) first\n")
+		return(FALSE)
+	}
+  
   if(exists(".grid")){
     grid.unlockAll()
     removeTaskCallback(.grid$callback)

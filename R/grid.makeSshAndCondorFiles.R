@@ -51,7 +51,7 @@ function(plots, yName, psName, fName, remScriptName, remMainName,remMainNameOut,
 	if(plots)
 		remscript <- append(remscript,"dev.off()")
 	remscript <- append(remscript,"\n q(runLast=FALSE)")
-	write.table(remscript,file=paste(.grid$localDir,remScriptName,sep=""),quote=FALSE,row.names=FALSE,col.names=FALSE)
+	write.table(remscript,file=paste(remScriptName,sep=""),quote=FALSE,row.names=FALSE,col.names=FALSE)
 	if(!onlyssh && batch==FALSE) {
 	
 	  # create R script which submits the job to condor and waits until the file yName exists
