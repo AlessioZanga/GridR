@@ -66,7 +66,6 @@
 			arguments      = \\\"CMD BATCH --slave ", remScriptName, "\\\"
 			Error          = ", errName, "
 			transfer_input_files =", remScriptName, ",", fName,
-        # "\ntransfer_files = ALWAYS",
         "\nQueue\", sep=\"\")
 			write.table(condorScript,\"", condorName, "\",quote=FALSE,row.names=FALSE,col.names=FALSE)
 			err=try(system(\"condor_submit ", condorName, "\", intern=TRUE))
