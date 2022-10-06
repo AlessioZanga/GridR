@@ -63,7 +63,7 @@
 			Universe       = vanilla
 			should_transfer_files = YES
 			when_to_transfer_output = ON_EXIT
-			arguments      = \\\"CMD BATCH --vanilla --slave ", remScriptName, "\\\"
+			arguments      = \\\"CMD BATCH --slave ", remScriptName, "\\\"
 			Error          = ", errName, "
 			transfer_input_files =", remScriptName, ",", fName,
         # "\ntransfer_files = ALWAYS",
