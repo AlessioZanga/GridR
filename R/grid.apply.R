@@ -15,7 +15,7 @@
 # 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 `grid.apply` <-
-  function(grid.input.Parameters.y = NULL, grid.input.Parameters.f = NULL, ..., wait = FALSE, varlist = c(), plots = FALSE, run = 1, check = TRUE, batch = NULL, javaSsh = FALSE) {
+  function(grid.input.Parameters.y = NULL, grid.input.Parameters.f = NULL, ..., wait = FALSE, varlist = c(), plots = FALSE, run = 1, check = TRUE, batch = NULL, javaSsh = FALSE, condor_universe = "vanilla", condor_image = NULL) {
     if (is.null(.grid$system)) {
       cat("Error, Please run grid.init(...) first!\n")
       return(FALSE)
@@ -103,9 +103,9 @@
     if (!is.null(batch)) {
       # (grid.input.Parameters.x, fName, yName, varlist, remScriptName){
       remoteRPath <- .grid$remoteRPath
-      save(list = c("grid.batchFunction", "grid.getBatchCmd", "scriptName", "fName", "batch", "noCondor", "check", "yName", "remScriptName", "errName", "remoteRPath", "condorName", "grid.input.Parameters.x", "grid.input.Parameters.f", "varlist", varlist), file = fName)
+      save(list = c("grid.batchFunction", "grid.getBatchCmd", "scriptName", "fName", "batch", "noCondor", "check", "yName", "remScriptName", "errName", "remoteRPath", "condor_universe", "condor_image", "condorName", "grid.input.Parameters.x", "grid.input.Parameters.f", "varlist", varlist), file = fName)
       # cmd is the function ( ie. f(grid.input.Parameters.x[[1]])) which should be executed
-      cmd <- "grid.batchFunction(grid.input.Parameters.x, fName, yName, varlist, scriptName, remScriptName, errName, condorName, batch, check, noCondor, remoteRPath)"
+      cmd <- "grid.batchFunction(grid.input.Parameters.x, fName, yName, varlist, scriptName, remScriptName, errName, condorName, batch, check, noCondor, remoteRPath, condor_universe, condor_image)"
     } else {
       save(list = c("grid.input.Parameters.x", "grid.input.Parameters.f", varlist), file = fName)
       # cmd is the function ( ie. f(grid.input.Parameters.x[[1]])) which should be executed
@@ -127,7 +127,7 @@
       if (length(varlist) != length(tmp)) {
         # resave params because varlist has changed
         if (!is.null(batch)) {
-          save(list = c("grid.batchFunction", "grid.getBatchCmd", "fName", "batch", "noCondor", "check", "yName", "remScriptName", "scriptName", "errName", "remoteRPath", "condorName", "grid.input.Parameters.x", "grid.input.Parameters.f", "varlist", varlist), file = fName)
+          save(list = c("grid.batchFunction", "grid.getBatchCmd", "fName", "batch", "noCondor", "check", "yName", "remScriptName", "scriptName", "errName", "remoteRPath", "condor_universe", "condor_image", "condorName", "grid.input.Parameters.x", "grid.input.Parameters.f", "varlist", varlist), file = fName)
         } else {
           save(list = c("grid.input.Parameters.x", "grid.input.Parameters.f", varlist), file = fName)
         }

@@ -15,7 +15,7 @@
 # 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 `grid.batchFunction` <-
-  function(grid.input.Parameters, fName, yName, varlist, scriptName, remScriptName, errName, condorName, batch, check, noCondor, remoteRPath) {
+  function(grid.input.Parameters, fName, yName, varlist, scriptName, remScriptName, errName, condorName, batch, check, noCondor, remoteRPath, condor_universe, condor_image) {
     cmd <- grid.getBatchCmd(grid.input.Parameters, batch)
     count <- 1
     while (count <= length(cmd)) {
@@ -52,7 +52,8 @@
       } else {
         # make condorscript
         condorScript <- paste("Executable     = ", remoteRPath, "
-							Universe       = vanilla
+							Universe       = ", condor_universe, "
+              ", { if (condor_universe == "docker") paste0("docker_image   = ", condor_image) else "" }, "
 							should_transfer_files = YES
 							when_to_transfer_output = ON_EXIT
 							arguments      = \"CMD BATCH --slave ", remScriptName, "-", count, "\"
